@@ -39,7 +39,8 @@ def main(argv=None):
     output_image = tf.image.convert_image_dtype(v, tf.uint8, saturate=True)
     eval_image_path = os.path.join(OUTPUT_DIR, filename)
 
-    logits = imagenet.inference(eval_image_path)
+    if os.path.exists(eval_image_path):
+        logits = imagenet.inference(eval_image_path)
 
     #logits = r.inference(inputs, FLAGS.num_classes)
     softmax = tf.nn.softmax(logits)

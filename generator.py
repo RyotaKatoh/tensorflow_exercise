@@ -36,7 +36,7 @@ def main(argv=None):
     output_image = tf.image.convert_image_dtype(v, tf.uint8, saturate=True)
     eval_image_path = os.path.join(FLAGS.images_dir, filename)
     with open(eval_image_path, 'wb') as f:
-        f.write(sess.run(tf.image.encode_png(output_image)))
+        f.write(tf.image.encode_png(output_image))
 
     logits = imagenet.inference(eval_image_path)
 

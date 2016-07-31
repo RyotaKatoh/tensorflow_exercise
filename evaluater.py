@@ -86,6 +86,7 @@ class ImageNet(object):
 
     def __init__(self):
         self.download_model()
+        self.load_imagenet()
 
     def load_imagenet(self):
         with tf.gfile.FastGFile(os.path.join(model_dir, 'classify_image_graph_def.pb'), 'rb') as f:

@@ -35,7 +35,7 @@ def main(argv=None):
     # loss and train
     inputs = tf.expand_dims(image, 0)
 
-    filename = 'generated-%03d.png' % TARGET_CLASS
+    filename = 'generated-%03d.jpg' % TARGET_CLASS
     output_image = tf.image.convert_image_dtype(v, tf.uint8, saturate=True)
     eval_image_path = os.path.join(OUTPUT_DIR, filename)
 
@@ -61,7 +61,8 @@ def main(argv=None):
 
         for step in range(1000):
             with open(eval_image_path, 'wb') as f:
-                f.write(sess.run(tf.image.encode_png(output_image)))
+                f.write(sess.run(tf.image.encode_jpeg(
+                    output_image, quality=100, chroma_downsampling=False)))
 
             _, loss_value, softmax_value = sess.run(
                 [train_op, losses, softmax])

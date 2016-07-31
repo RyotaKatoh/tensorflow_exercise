@@ -38,8 +38,6 @@ def main(argv=None):
     filename = 'generated-%03d.png' % TARGET_CLASS
     output_image = tf.image.convert_image_dtype(v, tf.uint8, saturate=True)
     eval_image_path = os.path.join(OUTPUT_DIR, filename)
-    with open(eval_image_path, 'wb') as f:
-        f.write(tf.image.encode_png(output_image))
 
     logits = imagenet.inference(eval_image_path)
 
@@ -62,6 +60,9 @@ def main(argv=None):
         #saver.restore(sess, checkpoint)
 
         for step in range(1000):
+            with open(eval_image_path, 'wb') as f:
+                f.write(sess.run(tf.image.encode_png(output_image)))
+
             _, loss_value, softmax_value = sess.run(
                 [train_op, losses, softmax])
             print('%04d - loss: %f (%f)' % (step,

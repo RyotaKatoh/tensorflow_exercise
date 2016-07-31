@@ -39,11 +39,11 @@ def main(argv=None):
     eval_image_path = os.path.join(OUTPUT_DIR, filename)
 
     logits = imagenet.inference(eval_image_path)
-
+    logits_v = tf.Variable(logits)
     #logits = r.inference(inputs, FLAGS.num_classes)
-    softmax = tf.nn.softmax(logits)
+    softmax = tf.nn.softmax(logits_v)
     losses = tf.nn.sparse_softmax_cross_entropy_with_logits(
-        logits, [TARGET_CLASS])
+        logits_v, [TARGET_CLASS])
     train_op = tf.train.AdamOptimizer().minimize(losses, var_list=[v])
 
     # variable_averages = tf.train.ExponentialMovingAverage(
@@ -59,6 +59,7 @@ def main(argv=None):
         #saver.restore(sess, checkpoint)
 
         for step in range(1000):
+            print(step)
             with open(eval_image_path, 'wb') as f:
                 f.write(sess.run(tf.image.encode_jpeg(
                     output_image, quality=100, chroma_downsampling=False)))

@@ -100,9 +100,10 @@ class ImageNet(object):
 
         image_data = tf.gfile.FastGFile(image, 'rb').read()
         with tf.Session() as sess:
-            softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
+            softmax_tensor = sess.graph.get_tensor_by_name(
+                'imagenet/softmax:0')
             predictions = sess.run(
-                softmax_tensor, {'DecodeJpeg/contents:0': image_data})
+                softmax_tensor, {'imagenet/DecodeJpeg/contents:0': image_data})
 
             return predictions
 

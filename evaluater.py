@@ -97,6 +97,7 @@ class ImageNet(object):
         if not tf.gfile.Exists(image):
             tf.logging.fatal('File does not exist %s', image)
 
+        image_data = tf.gfile.FastGFile(image, 'rb').read()
         with tf.Session() as sess:
             softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
             predictions = sess.run(

@@ -6,6 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 import tensorflow as tf
 from model.recognizer import Recognizer
 from eval import inputs
+import evaluator
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -16,8 +17,8 @@ tf.app.flags.DEFINE_string('images_dir', 'images',
 
 
 def main(argv=None):
-    # model definition and train op
-    r = Recognizer(batch_size=1)
+
+    imagenet = evaluator.ImageNet()
     # input variable
     with tf.variable_scope('input') as scope:
         v = tf.get_variable('input', shape=(96, 96, 3),
@@ -32,23 +33,32 @@ def main(argv=None):
         stddev, tf.inv(tf.sqrt(tf.cast(pixels, tf.float32)))))
     # loss and train
     inputs = tf.expand_dims(image, 0)
-    logits = r.inference(inputs, FLAGS.num_classes)
+
+    filename = 'generated-%03d.png' % FLAGS.target_class
+    output_image = tf.image.convert_image_dtype(v, tf.uint8, saturate=True)
+    eval_image_path = os.path.join(FLAGS.images_dir), filename
+    with open(eval_image_path):
+        f.write(sess.run(tf.image.encode_png(output_image)))
+
+    logits = imagenet.inference(eval_image_path)
+
+    #logits = r.inference(inputs, FLAGS.num_classes)
     softmax = tf.nn.softmax(logits)
     losses = tf.nn.sparse_softmax_cross_entropy_with_logits(
         logits, [FLAGS.target_class])
     train_op = tf.train.AdamOptimizer().minimize(losses, var_list=[v])
 
-    variable_averages = tf.train.ExponentialMovingAverage(
-        r.MOVING_AVERAGE_DECAY)
-    variables_to_restore = {}
-    for key, value in variable_averages.variables_to_restore().items():
-        if not key.startswith('input'):
-            variables_to_restore[key] = value
-    saver = tf.train.Saver(variables_to_restore)
-    checkpoint = tf.train.latest_checkpoint(FLAGS.train_dir)
+    # variable_averages = tf.train.ExponentialMovingAverage(
+    #     r.MOVING_AVERAGE_DECAY)
+    # variables_to_restore = {}
+    # for key, value in variable_averages.variables_to_restore().items():
+    #     if not key.startswith('input'):
+    #         variables_to_restore[key] = value
+    # saver = tf.train.Saver(variables_to_restore)
+    # checkpoint = tf.train.latest_checkpoint(FLAGS.train_dir)
     with tf.Session() as sess:
-        sess.run(tf.initialize_all_variables())
-        saver.restore(sess, checkpoint)
+        sess.run(tf.initialize_local_variables())
+        #saver.restore(sess, checkpoint)
 
         for step in range(1000):
             _, loss_value, softmax_value = sess.run(
@@ -57,14 +67,14 @@ def main(argv=None):
                                             loss_value[0], softmax_value.flatten().tolist()[FLAGS.target_class]))
 
         # write image to file
-        output_image = tf.image.convert_image_dtype(v, tf.uint8, saturate=True)
-        filename = 'target-%03d.png' % FLAGS.target_class
-        with open(os.path.join(os.path.dirname(__file__), '..', '..', FLAGS.images_dir, filename), 'wb') as f:
-            f.write(sess.run(tf.image.encode_png(output_image)))
-        filename = 'target-%03d.jpg' % FLAGS.target_class
-        with open(os.path.join(os.path.dirname(__file__), '..', '..', FLAGS.images_dir, filename), 'wb') as f:
-            f.write(sess.run(tf.image.encode_jpeg(
-                output_image, quality=100, chroma_downsampling=False)))
+        # output_image = tf.image.convert_image_dtype(v, tf.uint8, saturate=True)
+        # filename = 'target-%03d.png' % FLAGS.target_class
+        # with open(os.path.join(os.path.dirname(__file__), '..', '..', FLAGS.images_dir, filename), 'wb') as f:
+        #     f.write(sess.run(tf.image.encode_png(output_image)))
+        # filename = 'target-%03d.jpg' % FLAGS.target_class
+        # with open(os.path.join(os.path.dirname(__file__), '..', '..', FLAGS.images_dir, filename), 'wb') as f:
+        #     f.write(sess.run(tf.image.encode_jpeg(
+        #         output_image, quality=100, chroma_downsampling=False)))
 
 if __name__ == '__main__':
     tf.app.run()

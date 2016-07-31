@@ -31,7 +31,7 @@ class NodeLookup(object):
 
         self.node_lookup = self.load(label_lookup_path, uid_lookup_path)
 
-      def load(self, label_lookup_path, uid_lookup_path):
+    def load(self, label_lookup_path, uid_lookup_path):
         """Loads a human readable English name for each softmax node.
 
         Args:
@@ -81,6 +81,7 @@ class NodeLookup(object):
             return ''
         return self.node_lookup[node_id]
 
+
 class ImageNet(object):
 
     def __init__(self):
@@ -98,7 +99,8 @@ class ImageNet(object):
 
         with tf.Session() as sess:
             softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
-            predictions = sess.run(softmax_tensor, {'DecodeJpeg/contents:0': image_data})
+            predictions = sess.run(
+                softmax_tensor, {'DecodeJpeg/contents:0': image_data})
 
             return predictions
 
@@ -111,12 +113,15 @@ class ImageNet(object):
         filepath = os.path.join(dest_directory, filename)
         if not os.path.exists(filepath):
             def _progress(count, block_size, total_size):
-                sys.stdout.write('\r>> Downloading %s %.1f%%'%(filename, float(count*block_size)/float(total_size)*100.0))
+                sys.stdout.write('\r>> Downloading %s %.1f%%' % (
+                    filename, float(count * block_size) / float(total_size) * 100.0))
                 sys.stdout.flush()
-            file_path, _ = urllib.request.urlretrieve(DATA_URL, filepath, _progress)
+            file_path, _ = urllib.request.urlretrieve(
+                DATA_URL, filepath, _progress)
             print()
             statinfo = os.stat(filepath)
-            print('Succesfully downloaded', filename, statinfo.st_size, 'bytes.')
+            print('Succesfully downloaded', filename,
+                  statinfo.st_size, 'bytes.')
         tarfile.open(filepath, 'r:gz').extractall(dest_directory)
 #
 # def maybe_download_and_extract():

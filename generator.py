@@ -4,8 +4,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import tensorflow as tf
-from model.recognizer import Recognizer
-from eval import inputs
 import evaluator
 
 FLAGS = tf.app.flags.FLAGS

@@ -4,7 +4,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import tensorflow as tf
-import evaluator
+import evaluater
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -16,7 +16,7 @@ tf.app.flags.DEFINE_string('images_dir', 'images',
 
 def main(argv=None):
 
-    imagenet = evaluator.ImageNet()
+    imagenet = evaluater.ImageNet()
     # input variable
     with tf.variable_scope('input') as scope:
         v = tf.get_variable('input', shape=(96, 96, 3),

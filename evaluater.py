@@ -81,50 +81,65 @@ class NodeLookup(object):
             return ''
         return self.node_lookup[node_id]
 
-def create_graph():
-    with tf.gfile.FastGFile(os.path.join(model_dir, 'classify_image_graph_def.pb'), 'rb') as f:
-        graph_def =tf.GraphDef()
-        graph_def.ParseFromString(f.read())
-        _ = tf.import_graph_def(graph_def, name='')
+class ImageNet(object):
 
-def run_inference_on_image(image):
-    if not tf.gfile.Exists(image):
-        tf.logging.fatal('File does not exist %s', image)
+    def __init__(self):
+        self.download_model()
 
-    image_data = tf.gfile.FastGFile(image, 'rb').read()
+    def load_imagenet(self):
+        with tf.gfile.FastGFile(os.path.join(model_dir, 'classify_image_graph_def.pb'), 'rb') as f:
+            graph_def = tf.GraphDef()
+            graph_def.ParseFromString(f.read())
+            _ = tf.import_graph_def(graph_def, name='imagenet')
 
-    create_graph()
+    def inference(self, image):
+        if not tf.gfile.Exists(image):
+            tf.logging.fatal('File does not exist %s', image)
 
-    with tf.Session() as sess:
+        with tf.Session() as sess:
+            softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
+            predictions = sess.run(softmax_tensor, {'DecodeJpeg/contents:0': image_data})
 
-        softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
-        predictions = sess.run(sort_max_tensor, {'DecodeJpeg/contents:0': image_data})
-        predictions = np.squeeze(predictions)
+            return predictions
 
-        return predictions
+    def download_model(self):
+        dest_directory = model_dir
+        if not os.path.exists(dest_directory):
+            os.makedirs(dest_directory)
 
-
-def maybe_download_and_extract():
-  """Download and extract model tar file."""
-  dest_directory = FLAGS.model_dir
-  if not os.path.exists(dest_directory):
-    os.makedirs(dest_directory)
-  filename = DATA_URL.split('/')[-1]
-  filepath = os.path.join(dest_directory, filename)
-  if not os.path.exists(filepath):
-    def _progress(count, block_size, total_size):
-      sys.stdout.write('\r>> Downloading %s %.1f%%' % (
-          filename, float(count * block_size) / float(total_size) * 100.0))
-      sys.stdout.flush()
-    filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath, _progress)
-    print()
-    statinfo = os.stat(filepath)
-    print('Succesfully downloaded', filename, statinfo.st_size, 'bytes.')
-  tarfile.open(filepath, 'r:gz').extractall(dest_directory)
-
-
-def main(_):
-  maybe_download_and_extract()
-  image = (FLAGS.image_file if FLAGS.image_file else
-           os.path.join(FLAGS.model_dir, 'cropped_panda.jpg'))
-  run_inference_on_image(image)
+        filename = DATA_URL.split('/')[-1]
+        filepath = os.path.join(dest_directory, filename)
+        if not os.path.exists(filepath):
+            def _progress(count, block_size, total_size):
+                sys.stdout.write('\r>> Downloading %s %.1f%%'%(filename, float(count*block_size)/float(total_size)*100.0))
+                sys.stdout.flush()
+            file_path, _ = urllib.request.urlretrieve(DATA_URL, filepath, _progress)
+            print()
+            statinfo = os.stat(filepath)
+            print('Succesfully downloaded', filename, statinfo.st_size, 'bytes.')
+        tarfile.open(filepath, 'r:gz').extractall(dest_directory)
+#
+# def maybe_download_and_extract():
+#   """Download and extract model tar file."""
+#   dest_directory = FLAGS.model_dir
+#   if not os.path.exists(dest_directory):
+#     os.makedirs(dest_directory)
+#   filename = DATA_URL.split('/')[-1]
+#   filepath = os.path.join(dest_directory, filename)
+#   if not os.path.exists(filepath):
+#     def _progress(count, block_size, total_size):
+#       sys.stdout.write('\r>> Downloading %s %.1f%%' % (
+#           filename, float(count * block_size) / float(total_size) * 100.0))
+#       sys.stdout.flush()
+#     filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath, _progress)
+#     print()
+#     statinfo = os.stat(filepath)
+#     print('Succesfully downloaded', filename, statinfo.st_size, 'bytes.')
+#   tarfile.open(filepath, 'r:gz').extractall(dest_directory)
+#
+#
+# def main(_):
+#   maybe_download_and_extract()
+#   image = (FLAGS.image_file if FLAGS.image_file else
+#            os.path.join(FLAGS.model_dir, 'cropped_panda.jpg'))
+#   run_inference_on_image(image)
